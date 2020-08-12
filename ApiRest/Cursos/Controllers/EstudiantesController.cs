@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Cursos.Helper;
 using Cursos.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -45,9 +46,11 @@ namespace Cursos.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(Estudiante estudiante)
         {
+            // el net core tiene, implicitamente, una validacion del model de forma automatica.
+            // es posible sacar eso en el startup.cs
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest(ErrorHelper.GetModelStateErrors(ModelState));
             }
 
             _ctx.Estudiante.Add(estudiante);
@@ -57,5 +60,53 @@ namespace Cursos.Controllers
             //return CreatedAtAction(nameof(Get), new { Id = estudiante.IdEstudiante, Codigo = estudiante.Codigo }, estudiante);
             //return Created($"/Estudiante/{estudiante.Codigo}", estudiante);
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, Estudiante estudiante)
+        {
+            if (estudiante.IdEstudiante == 0)
+            {
+                estudiante.IdEstudiante = id;
+            }
+
+            if (id != estudiante.IdEstudiante)
+            {
+                return BadRequest(ErrorHelper.Response(400 , "Peticion no válida."));
+            }
+
+            var result = await _ctx.Estudiante.FindAsync(id);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            _ctx.Entry(estudiante).State = EntityState.Modified;
+            if (!TryValidateModel(estudiante, nameof(estudiante)))
+            {
+                return BadRequest(ErrorHelper.GetModelStateErrors(ModelState));
+            }
+
+            await _ctx.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var estudiante = await _ctx.Estudiante.FindAsync(id);
+
+            if (estudiante == null)
+            {
+                return NotFound();
+            }
+
+            _ctx.Estudiante.Remove(estudiante);
+            await _ctx.SaveChangesAsync();
+
+            return NoContent();
+        }
+
     }
 }
