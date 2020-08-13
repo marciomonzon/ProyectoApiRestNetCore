@@ -64,5 +64,33 @@ namespace Cursos.Controllers
 
             return CreatedAtAction(nameof(Get), new { id = curso.IdCurso }, curso);
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] Curso curso)
+        {
+            if (curso.IdCurso == 0)
+            {
+                curso.IdCurso = id;
+            }
+
+            if (curso.IdCurso != id)
+            {
+                return BadRequest(ErrorHelper.Response(400, "Peticion no válida"));
+            }
+
+            if (!await _ctx.Curso.Where(x => x.Codigo == curso.Codigo).AsNoTracking().AnyAsync())
+            {
+                return BadRequest(ErrorHelper.Response(400, $"El código {curso.Codigo} yá existe!"));
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ErrorHelper.GetModelStateErrors(ModelState));
+            }
+
+            _ctx.Entry(curso).State = EntityState.Modified;
+            await _ctx.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }
