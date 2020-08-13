@@ -92,5 +92,28 @@ namespace Cursos.Controllers
             await _ctx.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpGet("buscar")]
+        public async Task<IActionResult> Buscar([FromQuery] string b, [FromQuery] bool? estado)
+        {
+            return Ok(await _ctx.Curso
+                .Where(x => 
+                    (
+                        x.Descripcion.Contains(b)
+                        ||
+                        x.Codigo.Contains(b)
+                    )
+                    && 
+                    x.Estado == (estado == null ? x.Estado : estado.Value)
+                )
+                .ToListAsync());
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var curso = _ctx.Curso.Include(x => x.InscripcionCurso)
+                .Where(x => x.IdCurso == id).SingleOrDefaultAsync();
+        }
     }
 }
