@@ -112,8 +112,13 @@ namespace Cursos.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var curso = _ctx.Curso.Include(x => x.InscripcionCurso)
+            var curso = await _ctx.Curso.Include(x => x.InscripcionCurso)
                 .Where(x => x.IdCurso == id).SingleOrDefaultAsync();
+
+            if (!curso.)
+            {
+
+            }
         }
     }
 }
